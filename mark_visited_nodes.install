@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the Mark Visited nodes module.
+ */
+
+/**
+ * Implements hook_schema.
+ */
+function mark_visited_nodes_schema() {
+  $schema['mark_visited_nodes'] = array(
+    // Example (partial) specification for table "node".
+    'description' => 'The base table for the mark visited nodes module.',
+    'fields' => array(
+      'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+    ),
+    'primary key' => array('nid', 'uid'),
+  );
+  return $schema;
+}

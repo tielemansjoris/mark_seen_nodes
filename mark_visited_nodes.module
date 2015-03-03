@@ -1,0 +1,138 @@
+<?php
+
+/**
+ * @file
+ * the main functions for the Mark Visited Nodes module.
+ */
+
+
+/**
+ * Load the include files.
+ */
+module_load_include('inc', 'mark_visited_nodes', 'includes/mark_visited_nodes.admin');
+
+/**
+ * Removes visited node from the database ($nid).
+ */
+function remove_visited_node($nid) {
+  $nids = array($nid);
+  remove_visited_multiple($nids);
+}
+
+/**
+ * Removes visited nodes from the database ($nids).
+ */
+function remove_visited_multiple($nids) {
+  db_delete('mark_visited_nodes')
+    ->condition('nid', $nids, 'IN')
+    ->execute();
+}
+
+/**
+ * Removes visited nodes from the database by uid ($uid).
+ */
+function remove_visited_nodes_uid($uid) {
+  db_delete('mark_visited_nodes')
+    ->condition('uid', $uid)
+    ->execute();
+}
+
+/**
+ * Adds visited nodes into the database ($nid, $uid).
+ */
+function add_visited($nid, $uid) {
+  if ($nid != NULL) {
+    db_merge('mark_visited_nodes')
+    ->key(array('nid' => $nid, 'uid' => $uid))
+      ->fields(array(
+      'nid' => $nid,
+      'uid' => $uid,
+      )
+    )
+    ->execute();
+  }
+}
+
+/**
+ * Implements hook_node_view.
+ */
+function mark_visited_nodes_node_view($node, $view_mode, $langcode) {
+  global $user;
+
+  if (user_is_logged_in() && $node->type == 'page') {
+    add_visited($node->nid, $user->uid);
+  }
+}
+
+/**
+ * Implements hook_node_update.
+ */
+function mark_visited_nodes_node_update($node) {
+  remove_visited_node($node->nid);
+}
+
+/**
+ * Returns the $nids from the visited nodes by the current logged in user.
+ */
+function has_been_visited($nids) {
+  global $user;
+
+  if (user_is_logged_in() && (!empty($nids))) {
+
+  $uid = $user->uid;
+  $results = array();
+  $result = db_select('mark_visited_nodes', 'mvn')
+    ->fields('mvn', array('nid'))
+    ->condition('nid', $nids, 'IN')
+    ->condition('uid', $uid)
+    ->execute();
+
+     while ($record = $result->fetchAssoc()) {
+        array_push($results, $record['nid']);
+    }
+    return $results;
+  }
+  return array();
+}
+
+/**
+ * Implements hook_views_post_execute.
+ */
+function mark_visited_nodes_views_post_execute(&$view) {
+  if ($view->name == 'forum' || $view->vid == '13') {
+    $nids = array();
+    foreach ($view->result as $key => $value) {
+      array_push($nids, $value->nid);
+    }
+    $visitednids = has_been_visited($nids);
+    if (!empty($visitednids)) {
+      foreach ($view->result as $key => $value) {
+        if (in_array($value->nid, $visitednids)) {
+          $view->result[$key]->mark_visited_nodes = TRUE;
+        }
+        else {
+          $view->result[$key]->mark_visited_nodes = FALSE;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function mark_visited_nodes_user_delete($account) {
+  global $user;
+
+  remove_visited_nodes_uid($user->uid);
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function mark_visited_nodes_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'mark_visited_nodes') . '/views',
+  );
+}

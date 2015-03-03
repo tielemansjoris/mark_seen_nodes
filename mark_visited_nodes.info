@@ -1,0 +1,10 @@
+name = Mark Visited Nodes
+description = Marks unseen nodes per user.
+package = Dropsolid
+configure = admin/config/mark-visited-nodes
+core = 7.x
+php = 5
+version = "7.x-1.0"
+
+; Views Handlers
+files[] = views/mark_visited_nodes_handler_field_boolean.inc
