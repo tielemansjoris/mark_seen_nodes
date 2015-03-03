@@ -17,6 +17,5 @@ function mark_visited_nodes_views_data_alter(&$data) {
       'handler' => 'mark_visited_nodes_handler_field_boolean',
     ),
   );
-  dpm($data);
   return $data;
 }
