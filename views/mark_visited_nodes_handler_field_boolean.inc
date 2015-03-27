@@ -24,7 +24,7 @@ class mark_visited_nodes_handler_field_boolean extends views_handler_field {
 
     $default_formats = array(
       'yes-no' => array(t('Yes'), t('No')),
-      'true-false' => array(t('True'), t('False')),
+      'true-false' => array(t('Joris'), t('Paul')),
       'on-off' => array(t('On'), t('Off')),
       'enabled-disabled' => array(t('Enabled'), t('Disabled')),
       'boolean' => array(1, 0),
@@ -84,7 +84,7 @@ class mark_visited_nodes_handler_field_boolean extends views_handler_field {
     if (!empty($this->options['not'])) {
       $value = !$value;
     }
-    dpm('test');
+
     if ($this->options['type'] == 'custom') {
       return $value ? filter_xss_admin($this->options['type_custom_true']) : filter_xss_admin($this->options['type_custom_false']);
     }
