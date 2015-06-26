@@ -38,11 +38,12 @@ function mark_visited_nodes_form($form, &$form_state) {
     $nodetype[] = $key;
   }
 
-  $form['mvn-form'] = array(
+  $form['content_type'] = array(
     '#title' => t('Choose content type'),
-    '#type' => 'select',
-    '#options' => $nodetype,
-    '#required' => TRUE,
+    '#type' => 'checkboxes',
+    '#options' => drupal_map_assoc($nodetype),
+    '#default_value' => variable_get("content_type", ""),
+    '#required' => FALSE,
   );
 
   $form['submit'] = array(
@@ -55,4 +56,17 @@ function mark_visited_nodes_form($form, &$form_state) {
     )
   );
   return $form;
+}
+
+/**
+ * Implements hook_form_submit
+ */
+function mark_visited_nodes_form_submit($form, $form_state) {
+  $old_content_types = variable_get("content_type", "");
+  variable_set("content_type", $form_state['values']['content_type']);
+  foreach ($old_content_types as $key => $value) {
+    if ($old_content_types[$key] ==! $form_state['values']['content_type'][$key] && $form_state['values']['content_type'][$key] === 0) {
+      remove_visited_nodes_contenttype($value);
+    }
+  }
 }

@@ -38,6 +38,22 @@ function remove_visited_nodes_uid($uid) {
 }
 
 /**
+ * Removes visited nodes after form submit ($content_type).
+ */
+function remove_visited_nodes_contenttype($content_type) {
+  $nids = array('');
+  $query = db_select('mark_visited_nodes', 'mvn');
+  $query->join('node', 'n', 'mvn.nid=n.nid');
+  $query->fields('mvn', array('nid'));
+  $query->condition('n.type', $content_type, 'like');
+  $result = $query->execute()->fetchAll();
+  foreach ($result as $value) {
+    $nids[] = $value->nid;
+  }
+  remove_visited_multiple($nids);
+}
+
+/**
  * Adds visited nodes into the database ($nid, $uid).
  */
 function add_visited($nid, $uid) {
@@ -59,8 +75,11 @@ function add_visited($nid, $uid) {
 function mark_visited_nodes_node_view($node, $view_mode, $langcode) {
   global $user;
 
-  if (user_is_logged_in() && $node->type == 'page') {
-    add_visited($node->nid, $user->uid);
+  $content_types = variable_get("content_type", "");
+  foreach($content_types as $content_type) {
+    if (user_is_logged_in() && $node->type === $content_type) {
+      add_visited($node->nid, $user->uid);
+    }
   }
 }
 
@@ -74,7 +93,7 @@ function mark_visited_nodes_node_update($node) {
 /**
  * Returns the $nids from the visited nodes by the current logged in user.
  */
-function has_been_visited($nids) {
+function mark_visited_nodes($nids) {
   global $user;
 
   if (user_is_logged_in() && (!empty($nids))) {
@@ -104,7 +123,7 @@ function mark_visited_nodes_views_post_execute(&$view) {
     foreach ($view->result as $key => $value) {
       array_push($nids, $value->nid);
     }
-    $visitednids = has_been_visited($nids);
+    $visitednids = mark_visited_nodes($nids);
     if (!empty($visitednids)) {
       foreach ($view->result as $key => $value) {
         if (in_array($value->nid, $visitednids)) {
